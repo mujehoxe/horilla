@@ -1,6 +1,8 @@
-# Horilla Automated Deployment
+# Horilla Deployment
 
-> **Status**: Automated deployment is now active! 🚀
+> **Status**: ✅ Successfully deployed to production! 
+> **Server**: 65.20.74.159:8002 | **Status**: RUNNING
+> **Login**: admin / admin
 
 This repository includes automated deployment workflows using GitHub Actions to deploy Horilla HR software to your server.
 
