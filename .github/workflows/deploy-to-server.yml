@@ -225,7 +225,7 @@ jobs:
           echo "📦 Preparing deployment..."
           
           # Check if deployment temp directory exists
-          if [ ! -d "~/horilla-deployment-temp" ]; then
+          if [ ! -d "$HOME/horilla-deployment-temp" ]; then
             echo "❌ Deployment files not found. SCP transfer may have failed."
             ls -la ~/
             exit 1
