@@ -1,5 +1,7 @@
 # Horilla Automated Deployment
 
+> **Status**: Automated deployment is now active! 🚀
+
 This repository includes automated deployment workflows using GitHub Actions to deploy Horilla HR software to your server.
 
 ## 🚀 Deployment Options
