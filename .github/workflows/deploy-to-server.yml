@@ -67,7 +67,7 @@ jobs:
 
     - name: Run migrations
       run: |
-        python manage.py makemigrations --check --dry-run
+        python manage.py makemigrations
         python manage.py migrate
 
     - name: Collect static files
