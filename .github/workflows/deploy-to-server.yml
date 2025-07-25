@@ -205,6 +205,7 @@ jobs:
         username: ${{ secrets.USERNAME || 'milestonehre' }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         port: ${{ secrets.PORT || 22 }}
+        timeout: 300s
         source: "."
         target: "~/horilla-deployment-temp"
         rm: true
@@ -216,38 +217,67 @@ jobs:
         username: ${{ secrets.USERNAME || 'milestonehre' }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         port: ${{ secrets.PORT || 22 }}
+        timeout: 600s
+        command_timeout: 10m
         script: |
           set -e
           
           echo "📦 Preparing deployment..."
           
+          # Check if deployment temp directory exists
+          if [ ! -d "~/horilla-deployment-temp" ]; then
+            echo "❌ Deployment files not found. SCP transfer may have failed."
+            ls -la ~/
+            exit 1
+          fi
+          
           # Stop any existing Horilla instance
-          pkill -f "gunicorn.*horilla" || true
+          echo "🛑 Stopping existing Horilla processes..."
+          pkill -f "gunicorn.*horilla" || echo "No existing processes found"
           
           # Backup existing installation if it exists
-          if [ -d "~/horilla-app" ]; then
+          if [ -d "$HOME/horilla-app" ]; then
             echo "🔄 Backing up existing installation..."
-            mv ~/horilla-app ~/horilla-app-backup-$(date +%Y%m%d-%H%M%S) || true
+            mv $HOME/horilla-app $HOME/horilla-app-backup-$(date +%Y%m%d-%H%M%S) || true
           fi
           
           # Move new files to app directory
+          echo "📁 Moving deployment files..."
           mv ~/horilla-deployment-temp ~/horilla-app
           cd ~/horilla-app
           
+          # Verify files were moved correctly
+          if [ ! -f "deploy_server.sh" ]; then
+            echo "❌ Deployment script not found!"
+            ls -la
+            exit 1
+          fi
+          
           # Run deployment script
-          bash deploy_server.sh
+          echo "🚀 Running deployment script..."
+          timeout 300 bash deploy_server.sh
           
           # Start the application
+          echo "▶️ Starting application..."
           ./start_horilla.sh
           
-          # Wait a moment and check if it's running
-          sleep 5
+          # Wait and check if it's running
+          echo "⏳ Waiting for application to start..."
+          sleep 10
+          
           if pgrep -f "gunicorn.*horilla" > /dev/null; then
             echo "✅ Horilla deployed and started successfully!"
             echo "🌐 Application should be accessible at http://65.20.74.159:8002"
+            echo "📊 Process info:"
+            pgrep -f "gunicorn.*horilla" | head -3
           else
-            echo "❌ Failed to start Horilla. Check logs:"
-            tail -20 ~/horilla-app/horilla.log || echo "No log file found"
+            echo "❌ Failed to start Horilla. Checking logs and processes..."
+            echo "📁 Directory contents:"
+            ls -la ~/horilla-app/
+            echo "📋 Recent log entries:"
+            tail -20 ~/horilla-app/horilla.log 2>/dev/null || echo "No log file found"
+            echo "🔍 Python processes:"
+            ps aux | grep python || echo "No Python processes"
             exit 1
           fi
 
