@@ -1414,8 +1414,7 @@ def employee_view_update(request, obj_id, **kwargs):
 
     if employee is None:
         employee = emp
-        cmpny = Company.objects.get(id=selected_company_id)
-
+        
         work = (
             EmployeeWorkInformation.objects.entire()
             .filter(employee_id=employee)
@@ -1423,8 +1422,13 @@ def employee_view_update(request, obj_id, **kwargs):
         )
 
         if work and selected_company_id != "all":
-            work.company_id = cmpny
-            work.save()
+            try:
+                cmpny = Company.objects.get(id=selected_company_id)
+                work.company_id = cmpny
+                work.save()
+            except (Company.DoesNotExist, ValueError):
+                # Handle case where selected_company_id is not a valid company ID
+                pass
 
         employee.save()
 

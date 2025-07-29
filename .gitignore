@@ -152,3 +152,8 @@ whoosh_index/
 
 #PyCharm
 .idea/
+
+
+#Others
+horilla_production.sqlite3
+horilla_env/

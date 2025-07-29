@@ -3,7 +3,7 @@
 
 <div class="row">
     {% for field in form %}
-        {% if field.label != "Employee profile" and field.label != 'Country' and field.label != 'State' and field.label != 'Address' and field.label != 'Badge id' %}
+        {% if field.label != "Employee profile" and field.label != 'Country' and field.label != 'State' and field.label != 'Address' and field.label != 'Badge id' and field.label != 'Biometric Employee ID' and field.label != 'Biometric Employee Name' %}
             <div class="col-lg-6">
                 <div class="oh-input__group">
                     <label class="oh-label {% if field.field.required %}required-star{% endif %}" for="id_{{ field.name }}"
@@ -51,5 +51,29 @@
                 </div>
             </div>
         {% endif %}
+    {% endfor %}</div>
+
+{% comment %} Biometric Information Section {% endcomment %}
+{% if form.biometric_employee_id or form.biometric_employee_name %}
+<hr class="mt-4 mb-3">
+<div class="d-flex align-items-center mb-3">
+    <ion-icon name="finger-print-outline" class="me-2" style="font-size: 1.2rem; color: #007bff;"></ion-icon>
+    <h5 class="mb-0">{% trans "Biometrics Device" %}</h5>
+</div>
+<div class="row">
+    {% for field in form %}
+        {% if field.label == 'Biometric Employee ID' or field.label == 'Biometric Employee Name' %}
+            <div class="col-lg-6">
+                <div class="oh-input__group">
+                    <label class="oh-label {% if field.field.required %}required-star{% endif %}" for="id_{{ field.name }}"
+                        title="{{ field.help_text|safe }}">
+                        {% trans field.label %}
+                    </label>
+                    {{ field|add_class:'form-control' }}
+                    {{ field.errors }}
+                </div>
+            </div>
+        {% endif %}
     {% endfor %}
 </div>
+{% endif %}

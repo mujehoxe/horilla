@@ -111,6 +111,12 @@ class Employee(models.Model):
     is_directly_converted = models.BooleanField(
         default=False, null=True, blank=True, editable=False
     )
+    biometric_employee_id = models.CharField(
+        max_length=255, null=True, blank=True, verbose_name=_("Biometric Employee ID")
+    )
+    biometric_employee_name = models.CharField(
+        max_length=255, null=True, blank=True, verbose_name=_("Biometric Employee Name")
+    )
     objects = HorillaCompanyManager(
         related_company_field="employee_work_info__company_id"
     )
