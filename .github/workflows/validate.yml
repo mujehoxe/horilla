@@ -90,6 +90,8 @@ jobs:
         host: 65.20.74.159
         username: milestonehre
         key: ${{ secrets.SSH_PRIVATE_KEY }}
+        timeout: 20m
+        command_timeout: 20m
         script: |
           # Stop existing processes
           pkill -f 'gunicorn.*horilla' || echo 'No existing processes found'
@@ -99,8 +101,14 @@ jobs:
             mv 'horilla-app' "horilla-app-backup-$(date +%Y%m%d-%H%M%S)" || true
           fi
           
-          # Clone fresh code
-          git clone https://github.com/mujehoxe/horilla.git horilla-app
+          # Update existing code or clone fresh
+          if [ -d 'horilla-app-backup-*' ]; then
+            echo "Updating existing installation..."
+            git clone https://github.com/mujehoxe/horilla.git horilla-app
+          else
+            echo "Fresh installation..."
+            git clone https://github.com/mujehoxe/horilla.git horilla-app
+          fi
           cd horilla-app
           
           # Create production environment
