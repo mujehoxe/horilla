@@ -1,4 +1,4 @@
-name: Validate and Test
+name: Validate, Test and Deploy
 
 on:
   push:
@@ -75,3 +75,73 @@ jobs:
         echo '```' >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "📖 **See DEPLOYMENT.md for full instructions**" >> $GITHUB_STEP_SUMMARY
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Deploy to Production Server
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: 65.20.74.159
+        username: milestonehre
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          # Stop existing processes
+          pkill -f 'gunicorn.*horilla' || echo 'No existing processes found'
+          
+          # Backup existing installation
+          if [ -d 'horilla-app' ]; then 
+            mv 'horilla-app' "horilla-app-backup-$(date +%Y%m%d-%H%M%S)" || true
+          fi
+          
+          # Clone fresh code
+          git clone https://github.com/mujehoxe/horilla.git horilla-app
+          cd horilla-app
+          
+          # Create production environment
+          cat > .env << 'EOF'
+          DEBUG=False
+          SECRET_KEY=django-prod-$(openssl rand -hex 16)
+          ALLOWED_HOSTS=65.20.74.159,localhost,127.0.0.1
+          CSRF_TRUSTED_ORIGINS=http://65.20.74.159:8002
+          TIME_ZONE=UTC
+          DB_ENGINE=django.db.backends.sqlite3
+          DB_NAME=horilla_production.sqlite3
+          EOF
+          
+          # Set up Python environment
+          python3 -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          
+          # Run migrations automatically
+          python manage.py makemigrations
+          python manage.py migrate
+          
+          # Collect static files
+          python manage.py collectstatic --noinput
+          
+          # Create admin user if needed
+          python manage.py createhorillauser --first_name admin --last_name admin --username admin --password admin --email admin@horilla.com --phone 1234567890 || echo 'Admin user already exists'
+          
+          # Start application
+          nohup gunicorn --bind 0.0.0.0:8002 --workers 2 --timeout 60 horilla.wsgi:application > horilla.log 2>&1 &
+          
+          echo "Deployment completed successfully!"
+          echo "Application should be accessible at http://65.20.74.159:8002"
+    
+    - name: Deployment Summary
+      run: |
+        echo "## 🚀 Production Deployment Complete" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- **Server**: 65.20.74.159:8002" >> $GITHUB_STEP_SUMMARY
+        echo "- **Migrations**: Applied automatically" >> $GITHUB_STEP_SUMMARY
+        echo "- **Biometric Features**: Now available in production" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "🔑 **Login**: admin / admin" >> $GITHUB_STEP_SUMMARY
