@@ -95,7 +95,9 @@ jobs:
         username: milestonehre
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         timeout: 5m
+        debug: true
         script: |
+          echo "Starting process cleanup..."
           pkill -f 'gunicorn.*horilla' || true
           echo 'Process cleanup completed'
           
