@@ -88,18 +88,28 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Stop Existing Processes
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: 65.20.74.159
-        username: milestonehre
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        timeout: 5m
-        debug: true
-        script: |
-          echo "Starting process cleanup..."
-          pkill -f 'gunicorn.*horilla' || true
-          echo 'Process cleanup completed'
+      - name: Stop Existing Processes
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          timeout: 2m
+          command_timeout: 30s
+          debug: false
+          script: |
+            echo "Starting process cleanup..."
+            # Kill gunicorn processes more reliably
+            if pgrep -f 'gunicorn.*horilla' > /dev/null; then
+              echo "Found gunicorn processes, terminating..."
+              pkill -f 'gunicorn.*horilla' || true
+              sleep 2
+              # Force kill if still running
+              pkill -9 -f 'gunicorn.*horilla' || true
+            else
+              echo "No gunicorn processes found"
+            fi
+            echo "Process cleanup completed"
           
     - name: Update Code
       uses: appleboy/ssh-action@v1.0.3
