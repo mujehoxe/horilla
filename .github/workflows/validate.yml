@@ -89,33 +89,33 @@ jobs:
     - uses: actions/checkout@v4
     
     - name: Stop Existing Processes
-      uses: appleboy/ssh-action@v1.0.3
+      uses: webfactory/ssh-agent@v0.9.0
       with:
-          host: 65.20.74.159
-          username: milestonehre
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          timeout: 2m
-          command_timeout: 30s
-          script: |
-            echo "=== Process Cleanup Started ==="
-            echo "Current time: $(date)"
-            echo "Current user: $(whoami)"
-            echo "Current directory: $(pwd)"
-            
-            echo "Checking for existing gunicorn processes..."
-            if pgrep -f "gunicorn.*horilla" > /dev/null; then
-              echo "Found gunicorn processes. Stopping them..."
-              pkill -f "gunicorn.*horilla" || true
-              sleep 2
-              if pgrep -f "gunicorn.*horilla" > /dev/null; then
-                echo "Force killing remaining gunicorn processes..."
-                pkill -9 -f "gunicorn.*horilla" || true
-              fi
-            else
-              echo "No gunicorn processes found."
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    
+    - name: Test SSH Connection and Stop Processes
+      run: |
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 milestonehre@65.20.74.159 '
+          echo "=== SSH Connection Successful ==="
+          echo "Current time: $(date)"
+          echo "Current user: $(whoami)"
+          echo "Current directory: $(pwd)"
+          
+          echo "Checking for existing gunicorn processes..."
+          if pgrep -f "gunicorn.*horilla" > /dev/null 2>&1; then
+            echo "Found gunicorn processes. Stopping them..."
+            pkill -f "gunicorn.*horilla" || echo "Process kill completed"
+            sleep 2
+            if pgrep -f "gunicorn.*horilla" > /dev/null 2>&1; then
+              echo "Force killing remaining gunicorn processes..."
+              pkill -9 -f "gunicorn.*horilla" || echo "Force kill completed"
             fi
-            
-            echo "=== Process Cleanup Complete ==="
+          else
+            echo "No gunicorn processes found."
+          fi
+          
+          echo "=== Process Cleanup Complete ==="
+        '
           
     - name: Update Code
       uses: appleboy/ssh-action@v1.0.3
