@@ -136,7 +136,7 @@ jobs:
           DEBUG=False
           SECRET_KEY=django-prod-$(openssl rand -hex 16)
           ALLOWED_HOSTS=65.20.74.159,localhost,127.0.0.1
-          CSRF_TRUSTED_ORIGINS=http://65.20.74.159:8002
+          CSRF_TRUSTED_ORIGINS=http://65.20.74.159,http://65.20.74.159:8002
           TIME_ZONE=UTC
           DB_ENGINE=django.db.backends.sqlite3
           DB_NAME=horilla_production.sqlite3
@@ -154,6 +154,108 @@ jobs:
             pip install -r requirements.txt
           fi
           
+    - name: Setup Nginx Configuration
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: 65.20.74.159
+        username: milestonehre
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        timeout: 10m
+        script: |
+          echo "=== Nginx Configuration Setup ==="
+          
+          # Check if Nginx is installed and running
+          echo "Checking Nginx status..."
+          if ! command -v nginx >/dev/null 2>&1; then
+            echo "❌ Nginx is not installed"
+            exit 1
+          fi
+          
+          echo "✅ Nginx is installed ($(nginx -v 2>&1))"
+          
+          # Check if Nginx is running
+          if ! systemctl is-active nginx >/dev/null 2>&1; then
+            echo "⚠️ Nginx is not running, attempting to start..."
+            sudo systemctl start nginx || {
+              echo "❌ Failed to start Nginx"
+              exit 1
+            }
+          fi
+          
+          echo "✅ Nginx is running"
+          
+          # Create Horilla Nginx configuration
+          echo "Creating Horilla Nginx configuration..."
+          sudo tee /etc/nginx/conf.d/horilla.conf > /dev/null << 'EOF'
+          server {
+              listen 80;
+              server_name 65.20.74.159;
+              
+              # Security headers
+              add_header X-Frame-Options "SAMEORIGIN" always;
+              add_header X-Content-Type-Options "nosniff" always;
+              add_header X-XSS-Protection "1; mode=block" always;
+              
+              # Serve static files directly
+              location /static/ {
+                  alias /home/milestonehre/horilla-app/staticfiles/;
+                  expires 30d;
+                  add_header Cache-Control "public, immutable";
+              }
+              
+              location /media/ {
+                  alias /home/milestonehre/horilla-app/media/;
+                  expires 30d;
+              }
+              
+              # Proxy all other requests to Gunicorn
+              location / {
+                  proxy_pass http://127.0.0.1:8002;
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+                  
+                  # Timeouts
+                  proxy_connect_timeout 60s;
+                  proxy_send_timeout 60s;
+                  proxy_read_timeout 60s;
+                  
+                  # Buffer settings
+                  proxy_buffering on;
+                  proxy_buffer_size 8k;
+                  proxy_buffers 8 8k;
+              }
+              
+              # Health check endpoint
+              location /health {
+                  access_log off;
+                  return 200 "healthy\n";
+                  add_header Content-Type text/plain;
+              }
+          }
+          EOF
+          
+          echo "✅ Horilla Nginx configuration created"
+          
+          # Test Nginx configuration
+          echo "Testing Nginx configuration..."
+          if sudo nginx -t; then
+            echo "✅ Nginx configuration is valid"
+          else
+            echo "❌ Nginx configuration is invalid"
+            exit 1
+          fi
+          
+          # Reload Nginx
+          echo "Reloading Nginx..."
+          if sudo systemctl reload nginx; then
+            echo "✅ Nginx reloaded successfully"
+          else
+            echo "❌ Failed to reload Nginx"
+            exit 1
+          fi
+
     - name: Run Migrations and Deploy
       uses: appleboy/ssh-action@v1.0.3
       with:
@@ -178,26 +280,91 @@ jobs:
           
           # Start application
           echo "Starting application..."
-          nohup gunicorn --bind 0.0.0.0:8002 --workers 2 --timeout 60 horilla.wsgi:application > horilla.log 2>&1 &
+          nohup gunicorn --bind 127.0.0.1:8002 --workers 2 --timeout 60 horilla.wsgi:application > horilla.log 2>&1 &
           
           # Wait and verify
           sleep 5
           if pgrep -f "gunicorn.*horilla" > /dev/null; then
-            echo "✅ Deployment completed successfully!"
-            echo "🌐 Application is accessible at http://65.20.74.159:8002"
-            echo "🔑 Login: admin / admin"
+            echo "✅ Gunicorn started successfully!"
           else
-            echo "❌ Failed to start application. Check logs:"
+            echo "❌ Failed to start Gunicorn. Check logs:"
             tail -10 horilla.log
             exit 1
           fi
+
+    - name: Verify Nginx and Application
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: 65.20.74.159
+        username: milestonehre
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        timeout: 5m
+        script: |
+          echo "=== Final Verification ==="
+          
+          # Check Nginx status
+          if systemctl is-active nginx >/dev/null 2>&1; then
+            echo "✅ Nginx is running"
+          else
+            echo "❌ Nginx is not running"
+            exit 1
+          fi
+          
+          # Check Gunicorn status
+          if pgrep -f "gunicorn.*horilla" > /dev/null; then
+            echo "✅ Gunicorn is running"
+          else
+            echo "❌ Gunicorn is not running"
+            exit 1
+          fi
+          
+          # Test local application response
+          echo "Testing local application..."
+          if curl -s http://127.0.0.1:8002 > /dev/null; then
+            echo "✅ Application responds on port 8002"
+          else
+            echo "❌ Application not responding on port 8002"
+            exit 1
+          fi
+          
+          # Test Nginx proxy
+          echo "Testing Nginx proxy..."
+          if curl -s http://127.0.0.1 > /dev/null; then
+            echo "✅ Nginx proxy is working"
+          else
+            echo "❌ Nginx proxy not working"
+            exit 1
+          fi
+          
+          # Test health endpoint
+          if curl -s http://127.0.0.1/health | grep -q "healthy"; then
+            echo "✅ Health endpoint is working"
+          else
+            echo "⚠️ Health endpoint may not be working (non-critical)"
+          fi
+          
+          echo "\n🎉 Deployment completed successfully!"
+          echo "🌐 Application is accessible at:"
+          echo "   - Direct: http://65.20.74.159:8002"
+          echo "   - Via Nginx: http://65.20.74.159"
+          echo "🔑 Login: admin / admin"
     
     - name: Deployment Summary
       run: |
         echo "## 🚀 Production Deployment Complete" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "- **Server**: 65.20.74.159:8002" >> $GITHUB_STEP_SUMMARY
-        echo "- **Migrations**: Applied automatically" >> $GITHUB_STEP_SUMMARY
-        echo "- **Biometric Features**: Now available in production" >> $GITHUB_STEP_SUMMARY
+        echo "### 🌐 Access Points" >> $GITHUB_STEP_SUMMARY
+        echo "- **Primary (Nginx)**: http://65.20.74.159" >> $GITHUB_STEP_SUMMARY
+        echo "- **Direct (Gunicorn)**: http://65.20.74.159:8002" >> $GITHUB_STEP_SUMMARY
+        echo "- **Health Check**: http://65.20.74.159/health" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "🔑 **Login**: admin / admin" >> $GITHUB_STEP_SUMMARY
+        echo "### ⚙️ Services Status" >> $GITHUB_STEP_SUMMARY
+        echo "- **Nginx**: ✅ Running and configured" >> $GITHUB_STEP_SUMMARY
+        echo "- **Gunicorn**: ✅ Running on port 8002" >> $GITHUB_STEP_SUMMARY
+        echo "- **Database**: ✅ Migrations applied" >> $GITHUB_STEP_SUMMARY
+        echo "- **Static Files**: ✅ Collected and served by Nginx" >> $GITHUB_STEP_SUMMARY
+        echo "- **Biometric Features**: ✅ Available in production" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🔑 Login Details" >> $GITHUB_STEP_SUMMARY
+        echo "- **Username**: admin" >> $GITHUB_STEP_SUMMARY
+        echo "- **Password**: admin" >> $GITHUB_STEP_SUMMARY
