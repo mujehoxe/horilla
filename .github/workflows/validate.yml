@@ -54,7 +54,12 @@ jobs:
 
     - name: Run migrations
       run: |
-        python manage.py migrate
+        echo "=== Django Check ==="
+        python manage.py check
+        echo "=== Show Migrations ==="
+        python manage.py showmigrations
+        echo "=== Apply Migrations ==="
+        python manage.py migrate --verbosity=2
 
     - name: Collect static files
       run: |
@@ -157,10 +162,9 @@ jobs:
           cd horilla-app
           source venv/bin/activate
           
-          # Run migrations automatically
+          # Run migrations automatically (without generating new migrations)
           echo "Running migrations..."
-          python manage.py makemigrations
-          python manage.py migrate
+          python manage.py migrate --verbosity=2
           
           # Collect static files
           echo "Collecting static files..."
