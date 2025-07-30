@@ -94,9 +94,28 @@ jobs:
           host: 65.20.74.159
           username: milestonehre
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          timeout: 2m
+          command_timeout: 30s
           script: |
-            echo "Attempting to stop gunicorn..."
-            pkill gunicorn || echo "Gunicorn not running."
+            echo "=== Process Cleanup Started ==="
+            echo "Current time: $(date)"
+            echo "Current user: $(whoami)"
+            echo "Current directory: $(pwd)"
+            
+            echo "Checking for existing gunicorn processes..."
+            if pgrep -f "gunicorn.*horilla" > /dev/null; then
+              echo "Found gunicorn processes. Stopping them..."
+              pkill -f "gunicorn.*horilla" || true
+              sleep 2
+              if pgrep -f "gunicorn.*horilla" > /dev/null; then
+                echo "Force killing remaining gunicorn processes..."
+                pkill -9 -f "gunicorn.*horilla" || true
+              fi
+            else
+              echo "No gunicorn processes found."
+            fi
+            
+            echo "=== Process Cleanup Complete ==="
           
     - name: Update Code
       uses: appleboy/ssh-action@v1.0.3
