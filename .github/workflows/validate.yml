@@ -96,7 +96,8 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         timeout: 5m
         script: |
-          pkill -f 'gunicorn.*horilla' || echo 'No existing processes found'
+          pkill -f 'gunicorn.*horilla' || true
+          echo 'Process cleanup completed'
           
     - name: Update Code
       uses: appleboy/ssh-action@v1.0.3
