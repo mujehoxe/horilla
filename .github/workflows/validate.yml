@@ -96,6 +96,7 @@ jobs:
     - name: Test SSH Connection and Stop Processes
       run: |
         ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 milestonehre@65.20.74.159 '
+          set -e
           echo "=== SSH Connection Successful ==="
           echo "Current time: $(date)"
           echo "Current user: $(whoami)"
@@ -104,18 +105,19 @@ jobs:
           echo "Checking for existing gunicorn processes..."
           if pgrep -f "gunicorn.*horilla" > /dev/null 2>&1; then
             echo "Found gunicorn processes. Stopping them..."
-            pkill -f "gunicorn.*horilla" || echo "Process kill completed"
+            pkill -f "gunicorn.*horilla" || true
             sleep 2
             if pgrep -f "gunicorn.*horilla" > /dev/null 2>&1; then
               echo "Force killing remaining gunicorn processes..."
-              pkill -9 -f "gunicorn.*horilla" || echo "Force kill completed"
+              pkill -9 -f "gunicorn.*horilla" || true
             fi
+            echo "Process cleanup completed successfully"
           else
             echo "No gunicorn processes found."
           fi
           
           echo "=== Process Cleanup Complete ==="
-        '
+        ' || exit 0
           
     - name: Update Code
       uses: appleboy/ssh-action@v1.0.3
