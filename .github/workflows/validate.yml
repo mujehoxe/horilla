@@ -84,57 +84,47 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Deploy to Production Server
+    - name: Stop Existing Processes
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: 65.20.74.159
         username: milestonehre
         key: ${{ secrets.SSH_PRIVATE_KEY }}
-        timeout: 30m
-        command_timeout: 30m
+        timeout: 5m
         script: |
-          # Stop existing processes
           pkill -f 'gunicorn.*horilla' || echo 'No existing processes found'
           
-          # Smart deployment: update existing or create new
+    - name: Update Code
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: 65.20.74.159
+        username: milestonehre
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        timeout: 10m
+        script: |
           if [ -d 'horilla-app' ]; then
             echo "Updating existing installation..."
             cd horilla-app
-            
-            # Preserve database and virtual environment
             cp horilla_production.sqlite3 ../horilla_production.sqlite3.backup 2>/dev/null || echo "No existing database to backup"
-            
-            # Update code
             git fetch origin main
             git reset --hard origin/main
-            
-            # Restore database
             cp ../horilla_production.sqlite3.backup horilla_production.sqlite3 2>/dev/null || echo "No database backup to restore"
-            
-            # Activate existing virtual environment or create new one
-            if [ -d 'venv' ]; then
-              source venv/bin/activate
-              pip install --upgrade pip
-              pip install -r requirements.txt --upgrade
-            else
-              python3 -m venv venv
-              source venv/bin/activate
-              pip install --upgrade pip
-              pip install -r requirements.txt
-            fi
           else
             echo "Fresh installation..."
             git clone https://github.com/mujehoxe/horilla.git horilla-app
-            cd horilla-app
-            
-            # Set up Python environment
-            python3 -m venv venv
-            source venv/bin/activate
-            pip install --upgrade pip
-            pip install -r requirements.txt
           fi
           
-          # Create/update production environment
+    - name: Setup Environment
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: 65.20.74.159
+        username: milestonehre
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        timeout: 15m
+        script: |
+          cd horilla-app
+          
+          # Create production environment
           cat > .env << 'EOF'
           DEBUG=False
           SECRET_KEY=django-prod-$(openssl rand -hex 16)
@@ -144,6 +134,29 @@ jobs:
           DB_ENGINE=django.db.backends.sqlite3
           DB_NAME=horilla_production.sqlite3
           EOF
+          
+          # Setup Python environment
+          if [ -d 'venv' ]; then
+            source venv/bin/activate
+            pip install --upgrade pip
+            pip install -r requirements.txt --upgrade
+          else
+            python3 -m venv venv
+            source venv/bin/activate
+            pip install --upgrade pip
+            pip install -r requirements.txt
+          fi
+          
+    - name: Run Migrations and Deploy
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: 65.20.74.159
+        username: milestonehre
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        timeout: 10m
+        script: |
+          cd horilla-app
+          source venv/bin/activate
           
           # Run migrations automatically
           echo "Running migrations..."
@@ -157,14 +170,12 @@ jobs:
           # Create admin user if needed
           python manage.py createhorillauser --first_name admin --last_name admin --username admin --password admin --email admin@horilla.com --phone 1234567890 || echo 'Admin user already exists'
           
-          # Start application in background
+          # Start application
           echo "Starting application..."
           nohup gunicorn --bind 0.0.0.0:8002 --workers 2 --timeout 60 horilla.wsgi:application > horilla.log 2>&1 &
           
-          # Wait a moment for startup
-          sleep 3
-          
-          # Check if it started successfully
+          # Wait and verify
+          sleep 5
           if pgrep -f "gunicorn.*horilla" > /dev/null; then
             echo "✅ Deployment completed successfully!"
             echo "🌐 Application is accessible at http://65.20.74.159:8002"
