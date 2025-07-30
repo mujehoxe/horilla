@@ -174,11 +174,14 @@ jobs:
           
     - name: Setup Nginx Configuration
       uses: appleboy/ssh-action@v1.0.3
+      env:
+        SUDO_PASSWORD: ${{ secrets.SUDO_PASSWORD }}
       with:
         host: 65.20.74.159
         username: milestonehre
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         timeout: 10m
+        envs: SUDO_PASSWORD
         script: |
           echo "=== Nginx Configuration Setup ==="
           
@@ -190,7 +193,7 @@ jobs:
           
           if ! systemctl is-active --quiet nginx; then
             echo "⚠️ Nginx is not running. Attempting to start..."
-            echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl start nginx || { echo "❌ Failed to start Nginx."; exit 1; }
+            echo "${SUDO_PASSWORD}" | sudo -S systemctl start nginx || { echo "❌ Failed to start Nginx."; exit 1; }
           fi
           echo "✅ Nginx is installed and running."
 
@@ -215,10 +218,10 @@ jobs:
           EOF
 
           # Move the temporary file to the final destination with sudo
-          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S mv /tmp/horilla.conf /etc/nginx/conf.d/horilla.conf
+          echo "${SUDO_PASSWORD}" | sudo -S mv /tmp/horilla.conf /etc/nginx/conf.d/horilla.conf
 
           # Test and reload Nginx
-          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S nginx -t && echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl reload nginx || { echo "❌ Nginx configuration is invalid."; exit 1; }
+          echo "${SUDO_PASSWORD}" | sudo -S nginx -t && echo "${SUDO_PASSWORD}" | sudo -S systemctl reload nginx || { echo "❌ Nginx configuration is invalid."; exit 1; }
           echo "✅ Nginx configuration updated and reloaded."
 
     - name: Run Migrations and Deploy
