@@ -190,24 +190,22 @@ jobs:
           echo "✅ Nginx is installed and running."
 
           # Create a temporary file with the Nginx configuration
-          cat > /tmp/horilla.conf << "NGINXEOF"
-server {
-    listen 80;
-    server_name 65.20.74.159;
-
-    location /static/ {
-        alias /home/milestonehre/horilla-app/staticfiles/;
-    }
-
-    location / {
-        proxy_pass http://127.0.0.1:8002;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-    }
-}
-NGINXEOF
+          echo "server {" > /tmp/horilla.conf
+          echo "    listen 80;" >> /tmp/horilla.conf
+          echo "    server_name 65.20.74.159;" >> /tmp/horilla.conf
+          echo "" >> /tmp/horilla.conf
+          echo "    location /static/ {" >> /tmp/horilla.conf
+          echo "        alias /home/milestonehre/horilla-app/staticfiles/;" >> /tmp/horilla.conf
+          echo "    }" >> /tmp/horilla.conf
+          echo "" >> /tmp/horilla.conf
+          echo "    location / {" >> /tmp/horilla.conf
+          echo "        proxy_pass http://127.0.0.1:8002;" >> /tmp/horilla.conf
+          echo "        proxy_set_header Host \$host;" >> /tmp/horilla.conf
+          echo "        proxy_set_header X-Real-IP \$remote_addr;" >> /tmp/horilla.conf
+          echo "        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;" >> /tmp/horilla.conf
+          echo "        proxy_set_header X-Forwarded-Proto \$scheme;" >> /tmp/horilla.conf
+          echo "    }" >> /tmp/horilla.conf
+          echo "}" >> /tmp/horilla.conf
 
           # Move the temporary file to the final destination with sudo
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S mv /tmp/horilla.conf /etc/nginx/conf.d/horilla.conf
