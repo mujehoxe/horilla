@@ -91,8 +91,8 @@ jobs:
     - name: Stop Existing Processes
       uses: appleboy/ssh-action@v1.0.3
       with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USER }}
+          host: 65.20.74.159
+          username: milestonehre
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           timeout: 2m
           command_timeout: 30s
