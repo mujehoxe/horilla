@@ -88,9 +88,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-      - name: Stop Existing Processes
-        uses: appleboy/ssh-action@v1.0.3
-        with:
+    - name: Stop Existing Processes
+      uses: appleboy/ssh-action@v1.0.3
+      with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
