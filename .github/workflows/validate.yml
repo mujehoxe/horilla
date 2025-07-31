@@ -94,9 +94,9 @@ jobs:
         mkdir -p ~/.ssh
         chmod 700 ~/.ssh
         
-        # Use base64 encoded SSH key exclusively
-        echo "Using base64 encoded SSH key..."
-        echo "${{ secrets.SSH_PRIVATE_KEY_BASE64 }}" | base64 -d > ~/.ssh/id_rsa
+        # Use normal SSH private key
+        echo "Using SSH private key..."
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" | sed 's/\\n/\n/g' > ~/.ssh/id_rsa
         
         chmod 600 ~/.ssh/id_rsa
         
