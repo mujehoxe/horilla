@@ -96,8 +96,13 @@ jobs:
         
         # Try base64 method first (more reliable)
         if [ -n "${{ secrets.SSH_PRIVATE_KEY_BASE64 }}" ]; then
-          echo "Using base64 encoded SSH key..."
-          echo "${{ secrets.SSH_PRIVATE_KEY_BASE64 }}" | base64 -d > ~/.ssh/id_rsa
+          echo "Attempting to use base64 encoded SSH key..."
+          if echo "${{ secrets.SSH_PRIVATE_KEY_BASE64 }}" | base64 -d > ~/.ssh/id_rsa 2>/dev/null; then
+            echo "✅ Successfully decoded base64 SSH key"
+          else
+            echo "❌ Base64 decode failed, falling back to regular SSH key..."
+            echo "${{ secrets.SSH_PRIVATE_KEY }}" | sed 's/\\n/\n/g' > ~/.ssh/id_rsa
+          fi
         else
           echo "Using regular SSH key..."
           # Create SSH key from secret (handle potential formatting issues)
