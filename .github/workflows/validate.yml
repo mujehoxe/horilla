@@ -212,71 +212,29 @@ jobs:
           echo "✅ Nginx configuration updated and reloaded."
         '
 
-    - name: Stop Gunicorn Processes
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: 65.20.74.159
-        username: milestonehre
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        timeout: 5m
-        script: |
-          echo "Stopping existing Gunicorn processes..."
-          pkill -f "gunicorn.*horilla" || echo "No existing processes to stop"
-          sleep 2
-          
-    - name: Run Database Migrations
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: 65.20.74.159
-        username: milestonehre
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        timeout: 15m
-        script: |
-          cd horilla-app
-          source venv/bin/activate
-          echo "Running migrations..."
-          python manage.py migrate --verbosity=2
-          
-    - name: Collect Static Files
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: 65.20.74.159
-        username: milestonehre
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        timeout: 10m
-        script: |
-          cd horilla-app
-          source venv/bin/activate
-          echo "Collecting static files..."
-          python manage.py collectstatic --noinput
-          
-    - name: Create Admin User and Start Application
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: 65.20.74.159
-        username: milestonehre
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        timeout: 5m
-        script: |
-          cd horilla-app
-          source venv/bin/activate
-          
-          # Create admin user if needed
-          python manage.py createhorillauser --first_name admin --last_name admin --username admin --password admin --email admin@horilla.com --phone 1234567890 || echo 'Admin user already exists'
-          
-          # Start application
-          echo "Starting application..."
-          nohup gunicorn --bind 127.0.0.1:8002 --workers 2 --timeout 60 horilla.wsgi:application > horilla.log 2>&1 &
-          
-          # Wait and verify
-          sleep 5
-          if pgrep -f "gunicorn.*horilla" > /dev/null; then
-            echo "✅ Gunicorn started successfully!"
-          else
-            echo "❌ Failed to start Gunicorn. Check logs:"
-            tail -10 horilla.log
-            exit 1
+    - name: Stop Gunicorn and Run Migrations
+      run: |
+        echo "Stopping existing Gunicorn processes..."
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 milestonehre@65.20.74.159 'pkill -f "gunicorn.*horilla" || echo "No existing processes to stop"'
+        
+        echo "Running database migrations..."
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 milestonehre@65.20.74.159 'cd horilla-app && source venv/bin/activate && python manage.py migrate --verbosity=2'
+        
+        echo "Collecting static files..."
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 milestonehre@65.20.74.159 'cd horilla-app && source venv/bin/activate && python manage.py collectstatic --noinput'
+        
+        echo "Creating admin user and starting application..."
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 milestonehre@65.20.74.159 '
+          cd horilla-app && source venv/bin/activate && 
+          python manage.py createhorillauser --first_name admin --last_name admin --username admin --password admin --email admin@horilla.com --phone 1234567890 || echo "Admin user already exists" && 
+          nohup gunicorn --bind 127.0.0.1:8002 --workers 2 --timeout 60 horilla.wsgi:application > horilla.log 2>&1 & 
+          sleep 5 && 
+          if pgrep -f "gunicorn.*horilla" > /dev/null; then 
+            echo "✅ Gunicorn started successfully!" 
+          else 
+            echo "❌ Failed to start Gunicorn" && tail -10 horilla.log 
           fi
+        '
 
     - name: Verify Nginx and Application
       uses: appleboy/ssh-action@v1.0.3
