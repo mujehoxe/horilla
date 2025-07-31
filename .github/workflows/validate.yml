@@ -119,24 +119,22 @@ jobs:
           echo "=== Process Cleanup Complete ==="
         ' || exit 0
           
-    - name: Update Code
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: 65.20.74.159
-        username: milestonehre
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        timeout: 10m
-        script: |
-          if [ -d 'horilla-app' ]; then
-            echo "Updating existing installation..."
-            cd horilla-app
-            git fetch origin main
-            git reset --hard origin/main
-            echo "Code updated - database will be preserved"
-          else
-            echo "Fresh installation..."
-            git clone https://github.com/mujehoxe/horilla.git horilla-app
-          fi
+    - name: Deploy Application Files
+      run: |
+        # Create a clean deployment package
+        echo "Creating deployment package..."
+        rm -rf deploy-temp
+        mkdir deploy-temp
+        
+        # Copy all necessary files except git, cache, and development files
+        rsync -av --exclude='.git' --exclude='__pycache__' --exclude='*.pyc' --exclude='.env' --exclude='node_modules' --exclude='.github' --exclude='venv' --exclude='*.sqlite3' . deploy-temp/
+        
+        # Transfer files to server
+        echo "Transferring files to server..."
+        rsync -avz --delete --exclude='horilla_production.sqlite3' --exclude='venv' --exclude='staticfiles' -e "ssh -o StrictHostKeyChecking=no" deploy-temp/ milestonehre@65.20.74.159:horilla-app/
+        
+        # Clean up
+        rm -rf deploy-temp
           
     - name: Setup Environment
       uses: appleboy/ssh-action@v1.0.3
