@@ -245,13 +245,9 @@ jobs:
         ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ~/.ssh/id_rsa milestonehre@65.20.74.159 'cd horilla-app && source venv/bin/activate && 
           echo "Checking migration status..." &&
           python manage.py showmigrations --verbosity=2 || echo "Migration check completed" &&
-          echo "Fixing pms migration dependency issue..." &&
-          python manage.py migrate pms zero --fake --verbosity=2 &&
-          echo "Ensuring employee migrations are applied..." &&
-          python manage.py migrate employee --verbosity=2 &&
-          echo "Re-applying pms migrations..." &&
-          python manage.py migrate pms --verbosity=2 &&
-          echo "Running all remaining migrations..." &&
+          echo "Applying missing employee migrations with skip-checks..." &&
+          python manage.py migrate employee --skip-checks --verbosity=2 &&
+          echo "Now running all migrations normally..." &&
           python manage.py migrate --verbosity=2
         '
         
