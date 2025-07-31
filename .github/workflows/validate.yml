@@ -249,9 +249,6 @@ EOF
 
     - name: Deploy Application
       run: |
-        echo "Stopping existing Gunicorn processes..."
-        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ~/.ssh/id_rsa milestonehre@65.20.74.159 'pkill -f "gunicorn.*horilla" || echo "No existing processes to stop"'
-        
         echo "Running database migrations..."
         ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ~/.ssh/id_rsa milestonehre@65.20.74.159 'cd horilla-app && source venv/bin/activate && python manage.py migrate --verbosity=2'
         
