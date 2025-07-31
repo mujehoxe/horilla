@@ -212,35 +212,54 @@ jobs:
           echo "✅ Nginx configuration updated and reloaded."
         '
 
-    - name: Run Migrations and Deploy
+    - name: Stop Gunicorn Processes
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: 65.20.74.159
         username: milestonehre
         key: ${{ secrets.SSH_PRIVATE_KEY }}
-        timeout: 20m
-        command_timeout: 20m
+        timeout: 5m
         script: |
-          cd horilla-app
-          source venv/bin/activate
-          
-          # Stop any existing Gunicorn processes
           echo "Stopping existing Gunicorn processes..."
           pkill -f "gunicorn.*horilla" || echo "No existing processes to stop"
           sleep 2
           
-          # Run migrations automatically (without generating new migrations)
-          # Including biometric fields migration
+    - name: Run Database Migrations
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: 65.20.74.159
+        username: milestonehre
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        timeout: 15m
+        script: |
+          cd horilla-app
+          source venv/bin/activate
           echo "Running migrations..."
           python manage.py migrate --verbosity=2
           
-          # Clear Django cache if configured
-          echo "Clearing Django cache..."
-          python manage.py shell -c "from django.core.cache import cache; cache.clear()" || echo "No cache configured or cache clear failed"
-          
-          # Collect static files
+    - name: Collect Static Files
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: 65.20.74.159
+        username: milestonehre
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        timeout: 10m
+        script: |
+          cd horilla-app
+          source venv/bin/activate
           echo "Collecting static files..."
           python manage.py collectstatic --noinput
+          
+    - name: Create Admin User and Start Application
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: 65.20.74.159
+        username: milestonehre
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        timeout: 5m
+        script: |
+          cd horilla-app
+          source venv/bin/activate
           
           # Create admin user if needed
           python manage.py createhorillauser --first_name admin --last_name admin --username admin --password admin --email admin@horilla.com --phone 1234567890 || echo 'Admin user already exists'
