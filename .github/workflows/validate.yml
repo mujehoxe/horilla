@@ -218,7 +218,8 @@ jobs:
         host: 65.20.74.159
         username: milestonehre
         key: ${{ secrets.SSH_PRIVATE_KEY }}
-        timeout: 10m
+        timeout: 20m
+        command_timeout: 20m
         script: |
           cd horilla-app
           source venv/bin/activate
