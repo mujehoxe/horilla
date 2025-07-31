@@ -231,6 +231,7 @@ jobs:
           sleep 2
           
           # Run migrations automatically (without generating new migrations)
+          # Including biometric fields migration
           echo "Running migrations..."
           python manage.py migrate --verbosity=2
           
