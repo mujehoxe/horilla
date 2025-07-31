@@ -179,15 +179,13 @@ jobs:
           cd horilla-app
           
           # Create production environment
-          cat > .env << "EOF"
-DEBUG=False
-SECRET_KEY=django-prod-$(openssl rand -hex 16)
-ALLOWED_HOSTS=hr.propertymetre.com,65.20.74.159,localhost,127.0.0.1
-CSRF_TRUSTED_ORIGINS=https://hr.propertymetre.com,http://65.20.74.159,http://65.20.74.159:8002
-TIME_ZONE=UTC
-DB_ENGINE=django.db.backends.sqlite3
-DB_NAME=horilla_production.sqlite3
-EOF
+          echo "DEBUG=False" > .env
+          echo "SECRET_KEY=django-prod-$(openssl rand -hex 16)" >> .env
+          echo "ALLOWED_HOSTS=hr.propertymetre.com,65.20.74.159,localhost,127.0.0.1" >> .env
+          echo "CSRF_TRUSTED_ORIGINS=https://hr.propertymetre.com,http://65.20.74.159,http://65.20.74.159:8002" >> .env
+          echo "TIME_ZONE=UTC" >> .env
+          echo "DB_ENGINE=django.db.backends.sqlite3" >> .env
+          echo "DB_NAME=horilla_production.sqlite3" >> .env
           
           # Setup Python environment
           if [ -d "venv" ]; then
