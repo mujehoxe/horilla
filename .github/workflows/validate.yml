@@ -88,14 +88,19 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Stop Existing Processes
-      uses: webfactory/ssh-agent@v0.9.0
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    - name: Setup SSH Key
+      run: |
+        # Create SSH directory and key file
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        
+        # Add server to known hosts
+        ssh-keyscan -H 65.20.74.159 >> ~/.ssh/known_hosts
     
     - name: Test SSH Connection and Stop Processes
       run: |
-        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 milestonehre@65.20.74.159 '
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ~/.ssh/id_rsa milestonehre@65.20.74.159 '
           set -e
           echo "=== SSH Connection Successful ==="
           echo "Current time: $(date)"
@@ -131,7 +136,7 @@ jobs:
         
         # Transfer files to server
         echo "Transferring files to server..."
-        rsync -avz --delete --exclude='horilla_production.sqlite3' --exclude='venv' --exclude='staticfiles' -e "ssh -o StrictHostKeyChecking=no" deploy-temp/ milestonehre@65.20.74.159:horilla-app/
+        rsync -avz --delete --exclude='horilla_production.sqlite3' --exclude='venv' --exclude='staticfiles' -e "ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa" deploy-temp/ milestonehre@65.20.74.159:horilla-app/
         
         # Clean up
         rm -rf deploy-temp
@@ -171,7 +176,7 @@ jobs:
           
     - name: Setup Nginx Configuration
       run: |
-        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 milestonehre@65.20.74.159 '
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ~/.ssh/id_rsa milestonehre@65.20.74.159 '
           echo "=== Nginx Configuration Setup ==="
           
           # Check if Nginx is installed and running
@@ -215,16 +220,16 @@ jobs:
     - name: Deploy Application
       run: |
         echo "Stopping existing Gunicorn processes..."
-        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 milestonehre@65.20.74.159 'pkill -f "gunicorn.*horilla" || echo "No existing processes to stop"'
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ~/.ssh/id_rsa milestonehre@65.20.74.159 'pkill -f "gunicorn.*horilla" || echo "No existing processes to stop"'
         
         echo "Running database migrations..."
-        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 milestonehre@65.20.74.159 'cd horilla-app && source venv/bin/activate && python manage.py migrate --verbosity=2'
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ~/.ssh/id_rsa milestonehre@65.20.74.159 'cd horilla-app && source venv/bin/activate && python manage.py migrate --verbosity=2'
         
         echo "Collecting static files..."
-        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 milestonehre@65.20.74.159 'cd horilla-app && source venv/bin/activate && python manage.py collectstatic --noinput'
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ~/.ssh/id_rsa milestonehre@65.20.74.159 'cd horilla-app && source venv/bin/activate && python manage.py collectstatic --noinput'
         
         echo "Creating admin user and starting application..."
-        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 milestonehre@65.20.74.159 '
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ~/.ssh/id_rsa milestonehre@65.20.74.159 '
           cd horilla-app && source venv/bin/activate && 
           python manage.py createhorillauser --first_name admin --last_name admin --username admin --password admin --email admin@horilla.com --phone 1234567890 || echo "Admin user already exists" && 
           nohup gunicorn --bind 127.0.0.1:8002 --workers 2 --timeout 60 horilla.wsgi:application > horilla.log 2>&1 & 
