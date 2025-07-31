@@ -130,10 +130,9 @@ jobs:
           if [ -d 'horilla-app' ]; then
             echo "Updating existing installation..."
             cd horilla-app
-            cp horilla_production.sqlite3 ../horilla_production.sqlite3.backup 2>/dev/null || echo "No existing database to backup"
             git fetch origin main
             git reset --hard origin/main
-            cp ../horilla_production.sqlite3.backup horilla_production.sqlite3 2>/dev/null || echo "No database backup to restore"
+            echo "Code updated - database will be preserved"
           else
             echo "Fresh installation..."
             git clone https://github.com/mujehoxe/horilla.git horilla-app
