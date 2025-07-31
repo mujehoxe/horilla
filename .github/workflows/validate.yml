@@ -253,8 +253,8 @@ jobs:
           python manage.py migrate employee 0002_additional_models --fake --verbosity=2 &&
           echo "Applying biometric migration..." &&
           python manage.py migrate employee 0003_add_biometric_fields --verbosity=2 &&
-          echo "Re-applying pms migrations..." &&
-          python manage.py migrate pms --verbosity=2 &&
+          echo "Faking pms migrations since tables already exist..." &&
+          python manage.py migrate pms 0001_initial --fake --verbosity=2 &&
           echo "Running all remaining migrations..." &&
           python manage.py migrate --verbosity=2
         '
