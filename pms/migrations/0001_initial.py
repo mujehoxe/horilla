@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         ('base', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ('horilla_audit', '0001_initial'),
-        ('employee', '0001_initial'),
+        ('employee', '0002_additional_models'),
     ]
 
     operations = [
