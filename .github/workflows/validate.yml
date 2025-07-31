@@ -245,9 +245,13 @@ jobs:
         ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ~/.ssh/id_rsa milestonehre@65.20.74.159 'cd horilla-app && source venv/bin/activate && 
           echo "Checking migration status..." &&
           python manage.py showmigrations --verbosity=2 || echo "Migration check completed" &&
-          echo "Applying missing employee migrations with skip-checks..." &&
-          python manage.py migrate employee --skip-checks --verbosity=2 &&
-          echo "Now running all migrations normally..." &&
+          echo "Removing problematic pms migration record from database..." &&
+          python manage.py shell -c "from django.db.migrations.recorder import MigrationRecorder; recorder = MigrationRecorder.Migration.objects; recorder.filter(app=\"pms\", name=\"0001_initial\").delete(); print(\"Deleted pms.0001_initial record\")" &&
+          echo "Now applying employee migrations..." &&
+          python manage.py migrate employee --verbosity=2 &&
+          echo "Re-applying pms migrations..." &&
+          python manage.py migrate pms --verbosity=2 &&
+          echo "Running all remaining migrations..." &&
           python manage.py migrate --verbosity=2
         '
         
