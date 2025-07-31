@@ -1,0 +1,86 @@
+name: SSH Key Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-ssh:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Test SSH Key Setup Methods
+      run: |
+        echo "=== Testing SSH Key Setup ==="
+        
+        # Create SSH directory
+        mkdir -p ~/.ssh
+        chmod 700 ~/.ssh
+        
+        # Method 1: Base64 (if available)
+        if [ -n "${{ secrets.SSH_PRIVATE_KEY_BASE64 }}" ]; then
+          echo "Method 1: Testing base64 SSH key..."
+          echo "${{ secrets.SSH_PRIVATE_KEY_BASE64 }}" | base64 -d > ~/.ssh/id_rsa_test1
+          chmod 600 ~/.ssh/id_rsa_test1
+          
+          echo "Base64 key info:"
+          head -1 ~/.ssh/id_rsa_test1
+          tail -1 ~/.ssh/id_rsa_test1
+          wc -l ~/.ssh/id_rsa_test1
+          
+          # Test connection
+          ssh-keyscan -H 65.20.74.159 >> ~/.ssh/known_hosts
+          echo "Testing base64 SSH connection..."
+          if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -i ~/.ssh/id_rsa_test1 milestonehre@65.20.74.159 'echo "Base64 SSH test successful!"'; then
+            echo "✅ Base64 method works!"
+          else
+            echo "❌ Base64 method failed"
+          fi
+        else
+          echo "SSH_PRIVATE_KEY_BASE64 secret not found"
+        fi
+        
+        # Method 2: Regular (with sed processing)
+        if [ -n "${{ secrets.SSH_PRIVATE_KEY }}" ]; then
+          echo "Method 2: Testing regular SSH key with sed..."
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" | sed 's/\\n/\n/g' > ~/.ssh/id_rsa_test2
+          chmod 600 ~/.ssh/id_rsa_test2
+          
+          echo "Regular key info:"
+          head -1 ~/.ssh/id_rsa_test2
+          tail -1 ~/.ssh/id_rsa_test2
+          wc -l ~/.ssh/id_rsa_test2
+          
+          # Test connection
+          echo "Testing regular SSH connection..."
+          if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -i ~/.ssh/id_rsa_test2 milestonehre@65.20.74.159 'echo "Regular SSH test successful!"'; then
+            echo "✅ Regular method works!"
+          else
+            echo "❌ Regular method failed"
+            echo "Verbose SSH output:"
+            ssh -v -o StrictHostKeyChecking=no -o ConnectTimeout=10 -i ~/.ssh/id_rsa_test2 milestonehre@65.20.74.159 'echo test' 2>&1 | head -20
+          fi
+        else
+          echo "SSH_PRIVATE_KEY secret not found"
+        fi
+        
+        # Method 3: Raw (no processing)
+        if [ -n "${{ secrets.SSH_PRIVATE_KEY }}" ]; then
+          echo "Method 3: Testing raw SSH key..."
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa_test3
+          chmod 600 ~/.ssh/id_rsa_test3
+          
+          echo "Raw key info:"
+          head -1 ~/.ssh/id_rsa_test3
+          tail -1 ~/.ssh/id_rsa_test3
+          wc -l ~/.ssh/id_rsa_test3
+          
+          # Test connection
+          echo "Testing raw SSH connection..."
+          if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -i ~/.ssh/id_rsa_test3 milestonehre@65.20.74.159 'echo "Raw SSH test successful!"'; then
+            echo "✅ Raw method works!"
+          else
+            echo "❌ Raw method failed"
+          fi
+        fi
+        
+        echo "=== SSH Key Test Complete ==="
