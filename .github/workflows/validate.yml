@@ -92,11 +92,42 @@ jobs:
       run: |
         # Create SSH directory and key file
         mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 700 ~/.ssh
+        
+        # Try base64 method first (more reliable)
+        if [ -n "${{ secrets.SSH_PRIVATE_KEY_BASE64 }}" ]; then
+          echo "Using base64 encoded SSH key..."
+          echo "${{ secrets.SSH_PRIVATE_KEY_BASE64 }}" | base64 -d > ~/.ssh/id_rsa
+        else
+          echo "Using regular SSH key..."
+          # Create SSH key from secret (handle potential formatting issues)
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" | sed 's/\\n/\n/g' > ~/.ssh/id_rsa
+        fi
+        
         chmod 600 ~/.ssh/id_rsa
+        
+        # Verify key format
+        echo "SSH key info:"
+        head -1 ~/.ssh/id_rsa
+        tail -1 ~/.ssh/id_rsa
+        wc -l ~/.ssh/id_rsa
         
         # Add server to known hosts
         ssh-keyscan -H 65.20.74.159 >> ~/.ssh/known_hosts
+        
+        # Test SSH connection
+        echo "Testing SSH connection..."
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -i ~/.ssh/id_rsa milestonehre@65.20.74.159 'echo "SSH test successful!"' || {
+          echo "SSH connection failed. Debugging..."
+          echo "Key file permissions:"
+          ls -la ~/.ssh/id_rsa
+          echo "Key file content (first and last lines):"
+          head -1 ~/.ssh/id_rsa
+          tail -1 ~/.ssh/id_rsa
+          echo "Trying ssh with verbose output:"
+          ssh -v -o StrictHostKeyChecking=no -o ConnectTimeout=10 -i ~/.ssh/id_rsa milestonehre@65.20.74.159 'echo test' 2>&1 | head -20
+          exit 1
+        }
     
     - name: Test SSH Connection and Stop Processes
       run: |
