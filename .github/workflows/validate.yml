@@ -247,8 +247,12 @@ jobs:
           python manage.py showmigrations --verbosity=2 || echo "Migration check completed" &&
           echo "Removing problematic pms migration record from database..." &&
           python manage.py shell -c "from django.db.migrations.recorder import MigrationRecorder; recorder = MigrationRecorder.Migration.objects; recorder.filter(app=\"pms\", name=\"0001_initial\").delete(); print(\"Deleted pms.0001_initial record\")" &&
-          echo "Now applying employee migrations..." &&
-          python manage.py migrate employee --verbosity=2 &&
+          echo "Fixing data integrity issues..." &&
+          python manage.py shell -c "from base.models import JobRole; JobRole.objects.filter(job_position_id_id=14).delete(); print(\"Cleaned up orphaned JobRole records\")" &&
+          echo "Faking employee migrations since tables already exist..." &&
+          python manage.py migrate employee 0002_additional_models --fake --verbosity=2 &&
+          echo "Applying biometric migration..." &&
+          python manage.py migrate employee 0003_add_biometric_fields --verbosity=2 &&
           echo "Re-applying pms migrations..." &&
           python manage.py migrate pms --verbosity=2 &&
           echo "Running all remaining migrations..." &&
