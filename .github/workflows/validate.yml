@@ -173,17 +173,13 @@ jobs:
         rm -rf deploy-temp
           
     - name: Setup Environment
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: 65.20.74.159
-        username: milestonehre
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        timeout: 15m
-        script: |
+      run: |
+        echo "Setting up production environment..."
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ~/.ssh/id_rsa milestonehre@65.20.74.159 '
           cd horilla-app
           
           # Create production environment
-          cat > .env << 'EOF'
+          cat > .env << "EOF"
           DEBUG=False
           SECRET_KEY=django-prod-$(openssl rand -hex 16)
           ALLOWED_HOSTS=hr.propertymetre.com,65.20.74.159,localhost,127.0.0.1
@@ -191,10 +187,10 @@ jobs:
           TIME_ZONE=UTC
           DB_ENGINE=django.db.backends.sqlite3
           DB_NAME=horilla_production.sqlite3
-          EOF
+EOF
           
           # Setup Python environment
-          if [ -d 'venv' ]; then
+          if [ -d "venv" ]; then
             source venv/bin/activate
             pip install --upgrade pip
             pip install -r requirements.txt --upgrade
@@ -204,6 +200,9 @@ jobs:
             pip install --upgrade pip
             pip install -r requirements.txt
           fi
+          
+          echo "✅ Environment setup complete"
+        '
           
     - name: Setup Nginx Configuration
       run: |
@@ -271,19 +270,14 @@ jobs:
             echo "❌ Failed to start Gunicorn" && tail -10 horilla.log 
           fi
         '
-
     - name: Verify Nginx and Application
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: 65.20.74.159
-        username: milestonehre
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        timeout: 5m
-        script: |
+      run: |
+        echo "Performing final verification..."
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ~/.ssh/id_rsa milestonehre@65.20.74.159 '
           echo "=== Final Verification ==="
           
           # Check Nginx status
-          if systemctl is-active nginx >/dev/null 2>&1; then
+          if systemctl is-active nginx > /dev/null 2>&1; then
             echo "✅ Nginx is running"
           else
             echo "❌ Nginx is not running"
@@ -323,11 +317,13 @@ jobs:
             echo "⚠️ Health endpoint may not be working (non-critical)"
           fi
           
-          echo "\n🎉 Deployment completed successfully!"
+          echo
+          echo "🎉 Deployment completed successfully!"
           echo "🌐 Application is accessible at:"
           echo "   - Direct: http://65.20.74.159:8002"
           echo "   - Via Nginx: http://65.20.74.159"
           echo "🔑 Login: admin / admin"
+        '
     
     - name: Deployment Summary
       run: |
