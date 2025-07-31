@@ -241,11 +241,19 @@ jobs:
 
     - name: Deploy Application
       run: |
-        echo "Running employee migrations first..."
-        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ~/.ssh/id_rsa milestonehre@65.20.74.159 'cd horilla-app && source venv/bin/activate && python manage.py migrate employee --verbosity=2'
-        
-        echo "Running remaining database migrations..."
-        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ~/.ssh/id_rsa milestonehre@65.20.74.159 'cd horilla-app && source venv/bin/activate && python manage.py migrate --verbosity=2'
+        echo "Fixing migration history inconsistency..."
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ~/.ssh/id_rsa milestonehre@65.20.74.159 'cd horilla-app && source venv/bin/activate && 
+          echo "Checking migration status..." &&
+          python manage.py showmigrations --verbosity=2 || echo "Migration check completed" &&
+          echo "Fixing pms migration dependency issue..." &&
+          python manage.py migrate pms zero --fake --verbosity=2 &&
+          echo "Ensuring employee migrations are applied..." &&
+          python manage.py migrate employee --verbosity=2 &&
+          echo "Re-applying pms migrations..." &&
+          python manage.py migrate pms --verbosity=2 &&
+          echo "Running all remaining migrations..." &&
+          python manage.py migrate --verbosity=2
+        '
         
         echo "Collecting static files..."
         ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ~/.ssh/id_rsa milestonehre@65.20.74.159 'cd horilla-app && source venv/bin/activate && python manage.py collectstatic --noinput'
