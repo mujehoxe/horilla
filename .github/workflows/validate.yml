@@ -225,9 +225,18 @@ jobs:
           cd horilla-app
           source venv/bin/activate
           
+          # Stop any existing Gunicorn processes
+          echo "Stopping existing Gunicorn processes..."
+          pkill -f "gunicorn.*horilla" || echo "No existing processes to stop"
+          sleep 2
+          
           # Run migrations automatically (without generating new migrations)
           echo "Running migrations..."
           python manage.py migrate --verbosity=2
+          
+          # Clear Django cache if configured
+          echo "Clearing Django cache..."
+          python manage.py shell -c "from django.core.cache import cache; cache.clear()" || echo "No cache configured or cache clear failed"
           
           # Collect static files
           echo "Collecting static files..."
