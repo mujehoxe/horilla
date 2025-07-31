@@ -241,7 +241,10 @@ jobs:
 
     - name: Deploy Application
       run: |
-        echo "Running database migrations..."
+        echo "Running employee migrations first..."
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ~/.ssh/id_rsa milestonehre@65.20.74.159 'cd horilla-app && source venv/bin/activate && python manage.py migrate employee --verbosity=2'
+        
+        echo "Running remaining database migrations..."
         ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i ~/.ssh/id_rsa milestonehre@65.20.74.159 'cd horilla-app && source venv/bin/activate && python manage.py migrate --verbosity=2'
         
         echo "Collecting static files..."
