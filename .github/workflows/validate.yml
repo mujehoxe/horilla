@@ -333,9 +333,7 @@ jobs:
         echo "## 🚀 Production Deployment Complete" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### 🌐 Access Points" >> $GITHUB_STEP_SUMMARY
-        echo "- **Primary (Nginx)**: http://65.20.74.159" >> $GITHUB_STEP_SUMMARY
-        echo "- **Direct (Gunicorn)**: http://65.20.74.159:8002" >> $GITHUB_STEP_SUMMARY
-        echo "- **Health Check**: http://65.20.74.159/health" >> $GITHUB_STEP_SUMMARY
+        echo "- **Health Check**: /health" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### ⚙️ Services Status" >> $GITHUB_STEP_SUMMARY
         echo "- **Nginx**: ✅ Running and configured" >> $GITHUB_STEP_SUMMARY
@@ -344,6 +342,4 @@ jobs:
         echo "- **Static Files**: ✅ Collected and served by Nginx" >> $GITHUB_STEP_SUMMARY
         echo "- **Biometric Features**: ✅ Available in production" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### 🔑 Login Details" >> $GITHUB_STEP_SUMMARY
-        echo "- **Username**: admin" >> $GITHUB_STEP_SUMMARY
-        echo "- **Password**: admin" >> $GITHUB_STEP_SUMMARY
+  
