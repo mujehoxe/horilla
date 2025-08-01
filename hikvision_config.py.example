@@ -1,0 +1,24 @@
+# Hikvision Device Configuration
+# Copy this file to hikvision_config.py and update with your device settings
+
+HIKVISION_SETTINGS = {
+    'DEVICE_IP': '192.168.70.35',  # Your Hikvision device IP
+    'USERNAME': 'admin',           # Your device username
+    'PASSWORD': 'your_password',   # Your device password
+    'USE_HTTPS': True,             # Use HTTPS connection
+    'TIMEOUT': 15,                 # Connection timeout in seconds
+}
+
+# Attendance sync settings
+ATTENDANCE_SYNC_SETTINGS = {
+    'DEFAULT_MINIMUM_HOURS': '08:00',  # Default minimum working hours
+    'AUTO_VALIDATE': False,            # Whether to auto-validate attendance records
+    'TIMEZONE_OFFSET': '+08:00',       # Timezone offset for timestamps
+}
+
+# Employee mapping settings
+EMPLOYEE_MAPPING = {
+    'USE_BIOMETRIC_ID': True,          # Use biometric_employee_id field for matching
+    'CREATE_MISSING_EMPLOYEES': False, # Create new employees if not found
+    'FUZZY_NAME_MATCHING': True,       # Enable fuzzy name matching
+}

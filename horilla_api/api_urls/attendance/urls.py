@@ -6,6 +6,7 @@ from django.urls import path
 
 from horilla_api.api_views.attendance.permission_views import AttendancePermissionCheck
 from horilla_api.api_views.attendance.views import *
+from horilla_api.api_views.attendance.hikvision_views import HikvisionAttendanceReceiveView
 
 urlpatterns = [
     path("clock-in/", ClockInAPIView.as_view(), name="api-check-in"),
@@ -55,4 +56,5 @@ urlpatterns = [
     path("offline-employee-mail-send", OfflineEmployeeMailsend.as_view()),
     path("converted-mail-template", ConvertedMailTemplateConvert.as_view()),
     path("mail-templates", MailTemplateView.as_view()),
+    path("hikvision/receive/", HikvisionAttendanceReceiveView.as_view(), name="api-hikvision-receive"),
 ]

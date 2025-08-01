@@ -157,3 +157,10 @@ whoosh_index/
 #Others
 horilla_production.sqlite3
 horilla_env/
+
+# Hikvision integration files (contain credentials)
+fetch_hikvision_employees.py
+hikvision_attendance_v2.py
+sync_hikvision_*.py
+hikvision_config.py
+test_hikvision_integration.py
