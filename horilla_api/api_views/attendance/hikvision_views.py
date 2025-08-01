@@ -46,6 +46,13 @@ class HikvisionAttendanceReceiveView(APIView):
 
                     if not employee:
                         logger.warning(f"Employee not found: {person_name} (ID: {employee_id})")
+                        # Debug: Show all employees with biometric names for comparison
+                        existing_biometric_names = list(Employee.objects.exclude(
+                            biometric_employee_name__isnull=True
+                        ).exclude(
+                            biometric_employee_name=''
+                        ).values_list('biometric_employee_name', flat=True))
+                        logger.warning(f"Available biometric names: {existing_biometric_names}")
                         skipped_count += 1
                         continue
 
