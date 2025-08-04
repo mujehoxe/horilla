@@ -99,6 +99,19 @@ class Employee(models.Model):
     marital_status = models.CharField(
         max_length=50, blank=True, null=True, choices=choice_marital, default="single"
     )
+
+    # Added fields for Visa information
+    passport_number = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('Passport Number'))
+    visa_issue_date = models.DateField(blank=True, null=True, verbose_name=_('Visa Issue Date'))
+    visa_expiry_date = models.DateField(blank=True, null=True, verbose_name=_('Visa Expiry Date'))
+    visa_issued_company = models.ForeignKey(Company, null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_('Visa Issued Company'))
+    visa_type = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        choices=[('Visit', 'Visit'), ('Resident', 'Resident'), ('Spouse Sponsored', 'Spouse Sponsored'), ('Parent Sponsored', 'Parent Sponsored')],
+        verbose_name=_('Visa Type')
+    )
     children = models.IntegerField(blank=True, null=True)
     emergency_contact = models.CharField(max_length=15, null=True, blank=True)
     emergency_contact_name = models.CharField(max_length=20, null=True, blank=True)

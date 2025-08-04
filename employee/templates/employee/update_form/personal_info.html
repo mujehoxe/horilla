@@ -22,7 +22,184 @@
                         {{form.badge_id}} {{form.badge_id.errors}}
                     </div>
                 </div>
-                {{form.as_p}}
+                <!-- Personal Information Fields -->
+                <div class="row">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                    <label class="oh-label" for="{{form.employee_first_name.id_for_label}}">{% trans "First Name" %}</label>
+                    {{form.employee_first_name}}
+                    {{form.employee_first_name.errors}}
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                    <label class="oh-label" for="{{form.employee_last_name.id_for_label}}">{% trans "Last Name" %}</label>
+                    {{form.employee_last_name}}
+                    {{form.employee_last_name.errors}}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                    <label class="oh-label" for="{{form.email.id_for_label}}">{% trans "Email" %}</label>
+                    {{form.email}}
+                    {{form.email.errors}}
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                    <label class="oh-label" for="{{form.phone.id_for_label}}">{% trans "Phone" %}</label>
+                    {{form.phone}}
+                    {{form.phone.errors}}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                    <label class="oh-label" for="{{form.dob.id_for_label}}">{% trans "Date of Birth" %}</label>
+                    {{form.dob}}
+                    {{form.dob.errors}}
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                    <label class="oh-label" for="{{form.gender.id_for_label}}">{% trans "Gender" %}</label>
+                    {{form.gender}}
+                    {{form.gender.errors}}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                    <label class="oh-label" for="{{form.address.id_for_label}}">{% trans "Address" %}</label>
+                    {{form.address}}
+                    {{form.address.errors}}
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                    <label class="oh-label" for="{{form.country.id_for_label}}">{% trans "Country" %}</label>
+                    {{form.country}}
+                    {{form.country.errors}}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                    <label class="oh-label" for="{{form.state.id_for_label}}">{% trans "State" %}</label>
+                    {{form.state}}
+                    {{form.state.errors}}
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                    <label class="oh-label" for="{{form.city.id_for_label}}">{% trans "City" %}</label>
+                    {{form.city}}
+                    {{form.city.errors}}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                    <label class="oh-label" for="{{form.zip.id_for_label}}">{% trans "Zip Code" %}</label>
+                    {{form.zip}}
+                    {{form.zip.errors}}
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                    <label class="oh-label" for="{{form.marital_status.id_for_label}}">{% trans "Marital Status" %}</label>
+                    {{form.marital_status}}
+                    {{form.marital_status.errors}}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                    <label class="oh-label" for="{{form.children.id_for_label}}">{% trans "Children" %}</label>
+                    {{form.children}}
+                    {{form.children.errors}}
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                    <label class="oh-label" for="{{form.emergency_contact.id_for_label}}">{% trans "Emergency Contact" %}</label>
+                    {{form.emergency_contact}}
+                    {{form.emergency_contact.errors}}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                    <label class="oh-label" for="{{form.emergency_contact_name.id_for_label}}">{% trans "Emergency Contact Name" %}</label>
+                    {{form.emergency_contact_name}}
+                    {{form.emergency_contact_name.errors}}
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                    <label class="oh-label" for="{{form.emergency_contact_relation.id_for_label}}">{% trans "Emergency Contact Relation" %}</label>
+                    {{form.emergency_contact_relation}}
+                    {{form.emergency_contact_relation.errors}}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                    <label class="oh-label" for="{{form.qualification.id_for_label}}">{% trans "Qualification" %}</label>
+                    {{form.qualification}}
+                    {{form.qualification.errors}}
+                  </div>
+                  <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                    <label class="oh-label" for="{{form.experience.id_for_label}}">{% trans "Experience" %}</label>
+                    {{form.experience}}
+                    {{form.experience.errors}}
+                  </div>
+                </div>
+                
+                <!-- Biometrics Device Section -->
+                <div class="row mt-5">
+                  <div class="col-12">
+                    <div class="oh-card oh-card--secondary">
+                      <div class="oh-card__header">
+                        <h5 class="oh-card__title mb-0">{% trans "Biometrics Device" %}</h5>
+                      </div>
+                      <div class="oh-card__body">
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                            <label class="oh-label" for="{{form.biometric_employee_id.id_for_label}}">{% trans "Biometric Employee ID" %}</label>
+                            {{form.biometric_employee_id}}
+                            {{form.biometric_employee_id.errors}}
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                            <label class="oh-label" for="{{form.biometric_employee_name.id_for_label}}">{% trans "Biometric Employee Name" %}</label>
+                            {{form.biometric_employee_name}}
+                            {{form.biometric_employee_name.errors}}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Visa Information Section -->
+                <div class="row mt-5">
+                  <div class="col-12">
+                    <div class="oh-card oh-card--secondary">
+                      <div class="oh-card__header">
+                        <h5 class="oh-card__title mb-0">{% trans "Visa Information" %}</h5>
+                      </div>
+                      <div class="oh-card__body">
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                            <label class="oh-label" for="{{form.passport_number.id_for_label}}">{% trans "Passport Number" %}</label>
+                            {{form.passport_number}}
+                            {{form.passport_number.errors}}
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                            <label class="oh-label" for="{{form.visa_type.id_for_label}}">{% trans "Visa Type" %}</label>
+                            {{form.visa_type}}
+                            {{form.visa_type.errors}}
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                            <label class="oh-label" for="{{form.visa_issue_date.id_for_label}}">{% trans "Visa Issue Date" %}</label>
+                            {{form.visa_issue_date}}
+                            {{form.visa_issue_date.errors}}
+                          </div>
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                            <label class="oh-label" for="{{form.visa_expiry_date.id_for_label}}">{% trans "Visa Expiry Date" %}</label>
+                            {{form.visa_expiry_date}}
+                            {{form.visa_expiry_date.errors}}
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                            <label class="oh-label" for="{{form.visa_issued_company.id_for_label}}">{% trans "Visa Issued Company" %}</label>
+                            {{form.visa_issued_company}}
+                            {{form.visa_issued_company.errors}}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <hr class="mt-5 mb-3">
                 <div class="w-100 d-flex align-items-center justify-content-end">
                     <button type="submit" class="oh-btn oh-btn--secondary oh-btn--w-100-resp">

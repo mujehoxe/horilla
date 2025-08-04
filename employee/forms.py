@@ -168,6 +168,8 @@ class EmployeeForm(ModelForm):
         )
         widgets = {
             "dob": TextInput(attrs={"type": "date", "id": "dob"}),
+            "visa_issue_date": TextInput(attrs={"type": "date", "id": "visa_issue_date"}),
+            "visa_expiry_date": TextInput(attrs={"type": "date", "id": "visa_expiry_date"}),
         }
 
     def __init__(self, *args, **kwargs):

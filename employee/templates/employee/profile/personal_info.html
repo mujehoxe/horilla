@@ -123,6 +123,36 @@
                         {{form.children}} {{form.children.errors}}
                     </div>
                 </div>
+                
+                <!-- Visa Information Section -->
+                <h5 class="mt-4 mb-3">{% trans "Visa Information" %}</h5>
+                <div class="row">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                        <label class="oh-label d-block" for="passport_number">{% trans "Passport Number" %}</label>
+                        {{form.passport_number}} {{form.passport_number.errors}}
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                        <label class="oh-label d-block" for="visa_type">{% trans "Visa Type" %}</label>
+                        {{form.visa_type}} {{form.visa_type.errors}}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                        <label class="oh-label d-block" for="visa_issue_date">{% trans "Visa Issue Date" %}</label>
+                        {{form.visa_issue_date}} {{form.visa_issue_date.errors}}
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                        <label class="oh-label d-block" for="visa_expiry_date">{% trans "Visa Expiry Date" %}</label>
+                        {{form.visa_expiry_date}} {{form.visa_expiry_date.errors}}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                        <label class="oh-label d-block" for="visa_issued_company">{% trans "Visa Issued Company" %}</label>
+                        {{form.visa_issued_company}} {{form.visa_issued_company.errors}}
+                    </div>
+                </div>
+                
                 <hr class="mt-5 mb-3" />
                 <div class="w-100 d-flex align-items-center justify-content-end">
                     <button type="submit" class="oh-btn oh-btn--secondary oh-btn--w-100-resp">
