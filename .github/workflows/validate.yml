@@ -89,7 +89,7 @@ jobs:
     
     - name: Setup SSH Key
       run: |
-        # Create SSH directory and key file
+        # Create SSH directory and key files
         mkdir -p ~/.ssh
         chmod 700 ~/.ssh
         
